@@ -64,8 +64,8 @@ class EncodingArray:
         last_index = 0
         try:
             while True:
-                last_index = self._arr.index(el, last_index + 1, search_buff_size)
-                offsets.append(self._head_offset - last_index)
+                last_index = self._arr.index(el, last_index, search_buff_size) + 1
+                offsets.append(self._head_offset - last_index + 1)
         except ValueError:
             return offsets
 
@@ -73,32 +73,44 @@ class EncodingArray:
         return self._arr[self._head_offset - lz_offset]
 
 
+def find_best_match(matches):
+    longest_match = max(map(lambda x: x.match_length, matches), default=1)
+    best_matches = filter(lambda x: x.match_length == longest_match, matches)
+    return min(best_matches, key=lambda x: x.offset)
+
+
 enc_arr = EncodingArray(ArrayDataLoader(input_stream), search_buff_size, look_ahead_buff_size)
 enc_arr.init_look_ahead()
 
 result = []
 
-while True:
+for i in range(1, 1000000):
     head = enc_arr.head_el()
     if head is None:
         break
 
     lz_offsets = enc_arr.lz_offsets_in_search_buff(head)
     if len(lz_offsets) == 0:
-        lz_offset = 0
-        match_len = 0
+        triple = LZ77Triple(0, 0, head)
     else:
-        lz_offset = lz_offsets[0]
-        match_len = 1
-        for i in range(1, look_ahead_buff_size):
-            search_el = enc_arr.peek_by_lz_offset(lz_offset - i)
-            look_ahead_el = enc_arr.peek_in_look_ahead(i)
+        found_triplets = []
+        for lz_offset in lz_offsets:
+            match_len = 1
+            look_ahead_el = head
+            for i in range(1, look_ahead_buff_size):
+                search_el = enc_arr.peek_by_lz_offset(lz_offset - i)
+                look_ahead_el = enc_arr.peek_in_look_ahead(i)
 
-            if search_el != look_ahead_el:
-                head = look_ahead_el
-                break
+                if search_el != look_ahead_el:
+                    break
+                else:
+                    match_len += 1
+            found_triplets.append(LZ77Triple(lz_offset, match_len, look_ahead_el))
 
-    result.append(LZ77Triple(lz_offset, match_len, head))
+        triple = find_best_match(found_triplets)
 
-    enc_arr.move_head(match_len + 1)
+    result.append(triple)
 
+    enc_arr.move_head(triple.match_length + 1)
+
+print(result)
