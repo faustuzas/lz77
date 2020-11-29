@@ -1,35 +1,34 @@
 from lz77_enc import LZ77Encoder
 from lz77_dec import LZ77Decoder
-from loaders import ListDataLoader
-from ingestors import ListDataIngestor
+from commons import FileIngestor, file_byte_data_loader, triplet_decoder, ListDataIngestor
 
-input_array = [
-    'c', 'a', 'b', 'r', 'a', 'c',
-    'a', 'd', 'a', 'b', 'r', 'a',
-    'r', 'r', 'a', 'r', 'r', 'a',
-    'd'
-]
 
-look_ahead_buff_size = 6
-search_buff_size = 7
+look_ahead_buff_size = 2
+search_buff_size = 5
 
-encoding_result_ingestor = ListDataIngestor()
-encoder = LZ77Encoder(
-    data_loader=ListDataLoader(input_array),
-    result_ingestor=encoding_result_ingestor,
-    look_ahead_buff_size=look_ahead_buff_size,
-    search_buff_size=search_buff_size
-)
+with open('encoded.lz77', 'wb') as f:
+    encoding_result_ingestor = FileIngestor(f)
+    list_ingestor = ListDataIngestor()
+    encoder = LZ77Encoder(
+        data_loader=file_byte_data_loader('a1.txt'),
+        # data_loader=file_byte_data_loader('input_foto.jpeg'),
+        # result_ingestor=encoding_result_ingestor,
+        result_ingestor=list_ingestor,
+        look_ahead_buff_size=look_ahead_buff_size,
+        search_buff_size=search_buff_size
+    )
 
-encoder.encode()
+    encoder.encode()
 
-decoding_result_ingestor = ListDataIngestor()
-decoder = LZ77Decoder(
-    data_loader=ListDataLoader(encoding_result_ingestor.result()),
-    result_ingestor=decoding_result_ingestor,
-    search_buff_size=search_buff_size
-)
+print(list_ingestor.result())
 
-decoder.decode()
-
-print(input_array == decoding_result_ingestor.result())
+# with open('output_foto.jpeg', 'wb') as f:
+# with open('a1-output.txt', 'wb') as f:
+#     decoding_result_ingestor = FileIngestor(f)
+#     decoder = LZ77Decoder(
+#         data_loader=triplet_decoder(file_byte_data_loader('encoded.lz77')),
+#         result_ingestor=decoding_result_ingestor,
+#         search_buff_size=search_buff_size
+#     )
+#
+#     decoder.decode()

@@ -34,7 +34,7 @@ class LZ77EncodingArray:
             self._arr.append(self._read_from_loader())
 
     def init_look_ahead(self):
-        self._arr[self._look_ahead_buff_size + 1:] = [
+        self._arr[self._search_buff_size:] = [
             self._read_from_loader()
             for _ in range(self._look_ahead_buff_size)
         ]
