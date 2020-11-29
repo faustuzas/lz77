@@ -1,7 +1,7 @@
 from utils import LZ77Triple
 
 search_buff_size = 7
-raw_triplets = [(0, 0, 'c'), (0, 0, 'a'), (0, 0, 'b'), (0, 0, 'r'), (3, 1, 'c'), (2, 1, 'd'), (7, 4, 'r'), (3, 5, 'd')]
+raw_triplets = [(0, 0, 'c'), (0, 0, 'a'), (0, 0, 'b'), (0, 0, 'r'), (4, 3, 'r')]
 triplets = [LZ77Triple(*x) for x in raw_triplets]
 
 
@@ -50,3 +50,5 @@ for triplet in data_loader:
 
     result.append(triplet.codeword)
     search_buff.push(triplet.codeword)
+
+print(result)

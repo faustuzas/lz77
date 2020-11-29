@@ -1,10 +1,7 @@
 from utils import LZ77Triple
 
 input_stream = [
-    'c', 'a', 'b', 'r', 'a', 'c',
-    'a', 'd', 'a', 'b', 'r', 'a',
-    'r', 'r', 'a', 'r', 'r', 'a',
-    'd'
+
 ]
 
 look_ahead_buff_size = 6
@@ -102,7 +99,7 @@ for i in range(1, 1000000):
         for lz_offset in lz_offsets:
             match_len = 1
             look_ahead_el = head
-            for i in range(1, look_ahead_buff_size): # TODO: paziuret ar nereikia cia vieno pridet
+            for i in range(1, look_ahead_buff_size):
                 search_el = enc_arr.peek_by_lz_offset(lz_offset - i)
                 look_ahead_el = enc_arr.peek_in_look_ahead(i)
 
@@ -113,11 +110,12 @@ for i in range(1, 1000000):
             found_triplets.append(LZ77Triple(lz_offset, match_len, look_ahead_el))
 
         triple = find_best_match(found_triplets)
+        if triple.codeword is None:
+            match_len = triple.match_length - 1
+            triple = LZ77Triple(triple.offset, match_len, enc_arr.peek_in_look_ahead(match_len))
 
     result.append(triple)
 
     enc_arr.move_head(triple.match_length + 1)
 
 print(result)
-
-# TODO: kas buna, kai randa viska ko tik norejo - du vienodus zodzius serializint
