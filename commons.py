@@ -15,26 +15,35 @@ class LZ77Triple:
         return offset_to_bytes(self.offset) + match_length_to_bytes(self.match_length) + el_to_bytes(self.el)
 
 
+offset_size_in_bytes = 1
+match_len_size_in_bytes = 1
+
+
 def offset_to_bytes(offset):
-    try:
-        return offset.to_bytes(2, byteorder='big', signed=False)
-    except OverflowError:
-        print('a')
+    return int_to_bytes(offset, offset_size_in_bytes)
 
 
 def bytes_to_offset(bytes_source):
-    bytes_ = bytes()
-    for _ in range(2):
-        bytes_ += next(bytes_source)
-    return int.from_bytes(bytes_, byteorder='big', signed=False)
+    return bytes_to_int(bytes_source, offset_size_in_bytes)
 
 
 def match_length_to_bytes(match_length):
-    return match_length.to_bytes(1, byteorder='big', signed=False)
+    return int_to_bytes(match_length, match_len_size_in_bytes)
 
 
 def bytes_to_match_length(bytes_source):
-    return int.from_bytes(next(bytes_source), byteorder='big', signed=False)
+    return bytes_to_int(bytes_source, match_len_size_in_bytes)
+
+
+def int_to_bytes(num, bytes_count):
+    return num.to_bytes(bytes_count, byteorder='big', signed=False)
+
+
+def bytes_to_int(bytes_source, bytes_count):
+    bytes_ = bytes()
+    for _ in range(bytes_count):
+        bytes_ += next(bytes_source)
+    return int.from_bytes(bytes_, byteorder='big', signed=False)
 
 
 def el_to_bytes(el):
@@ -58,11 +67,19 @@ class ListDataIngestor:
 
 class FileIngestor:
 
-    def __init__(self, file_handle):
-        self._file_handle = file_handle
+    def __init__(self, file_name):
+        self._file_name = file_name
+        self._fd = None
+
+    def __enter__(self):
+        self._fd = open(self._file_name, 'wb')
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self._fd.close()
 
     def ingest(self, el):
-        self._file_handle.write(bytes(el))
+        self._fd.write(bytes(el))
 
 
 def list_data_loader(arr):

@@ -84,14 +84,21 @@ class LZ77Encoder:
                 for lz_offset in lz_offsets:
                     match_len = 1
                     look_ahead_el = head
+                    match_finished = True
                     for i in range(1, self._look_ahead_buff_size):
                         search_el = self._enc_arr.peek_by_lz_offset(lz_offset - i)
                         look_ahead_el = self._enc_arr.peek_in_look_ahead(i)
 
                         if search_el != look_ahead_el:
+                            match_finished = True
                             break
                         else:
                             match_len += 1
+                            match_finished = False
+
+                    if not match_finished:
+                        match_len -= 1
+
                     found_triplets.append(LZ77Triple(lz_offset, match_len, look_ahead_el))
 
                 triplet = self._find_best_match(found_triplets)
