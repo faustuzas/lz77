@@ -45,7 +45,7 @@ class EncodingArray:
     def head_el(self):
         return self._arr[self._head_offset]
 
-    def peek(self, offset_from_head):
+    def peek_in_look_ahead(self, offset_from_head):
         return self._arr[self._head_offset + offset_from_head]
 
     def move_head(self, offset):
@@ -65,9 +65,12 @@ class EncodingArray:
         try:
             while True:
                 last_index = self._arr.index(el, last_index + 1, search_buff_size)
-                offsets.append(search_buff_size - last_index)
+                offsets.append(self._head_offset - last_index)
         except ValueError:
             return offsets
+
+    def peek_by_lz_offset(self, lz_offset):
+        return self._arr[self._head_offset - lz_offset]
 
 
 enc_arr = EncodingArray(ArrayDataLoader(input_stream), search_buff_size, look_ahead_buff_size)
@@ -83,7 +86,19 @@ while True:
     lz_offsets = enc_arr.lz_offsets_in_search_buff(head)
     if len(lz_offsets) == 0:
         lz_offset = 0
-        result.append(LZ77Triple(lz_offset, 0, head))
+        match_len = 0
+    else:
+        lz_offset = lz_offsets[0]
+        match_len = 1
+        for i in range(1, look_ahead_buff_size):
+            search_el = enc_arr.peek_by_lz_offset(lz_offset - i)
+            look_ahead_el = enc_arr.peek_in_look_ahead(i)
 
-    enc_arr.move_head(lz_offset + 1)
+            if search_el != look_ahead_el:
+                head = look_ahead_el
+                break
+
+    result.append(LZ77Triple(lz_offset, match_len, head))
+
+    enc_arr.move_head(match_len + 1)
 
