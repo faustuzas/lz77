@@ -3,7 +3,7 @@ import argparse
 
 from lz77_enc import LZ77Encoder
 from lz77_dec import LZ77Decoder
-from commons import FileIngestor, file_byte_data_loader, triplet_decoder
+from commons import EncodingFileTripletIngestor, file_byte_data_loader, triplet_decoder
 
 
 look_ahead_buff_size = 200
@@ -23,7 +23,7 @@ if __name__ == '__main__':
         parser.print_help()
         exit(-2)
 
-    with FileIngestor(output_file) as ingestor:
+    with EncodingFileTripletIngestor(output_file) as ingestor:
         data_loader = file_byte_data_loader(input_file)
 
         if type_ == 'enc':
