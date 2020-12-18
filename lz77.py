@@ -10,8 +10,8 @@ def main():
     parser.add_argument('--type', choices=['enc', 'dec'], default='enc')
     parser.add_argument('--input', required=True)
     parser.add_argument('--output', required=True)
-    parser.add_argument('--offset_size', required=True)
-    parser.add_argument('--match_len_size', required=True)
+    parser.add_argument('--offset_size', required=False)
+    parser.add_argument('--match_len_size', required=False)
     args = parser.parse_args()
 
     type_ = args.type

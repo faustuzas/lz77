@@ -87,6 +87,7 @@ class LZ77Encoder:
                 break
 
             # find all occurrences of the element in the search buffer and their offsets
+            # to avoid heavy computation, take only 10 offsets
             lz_offsets = self._enc_arr.find_lz_offsets_in_search_buff(head)
 
             if len(lz_offsets) == 0:
@@ -116,10 +117,11 @@ class LZ77Encoder:
                     if not match_finished:
                         match_len -= 1
 
+                    found_triplets.append(LZ77Triplet(lz_offset, match_len, look_ahead_el))
+
                     # if we have found a longest possible match, stop the search, we cannot find better
-                    # found_triplets.append(LZ77Triplet(lz_offset, match_len, look_ahead_el))
-                    # if match_len == self._look_ahead_buff_size or match_len == self._look_ahead_buff_size - 1:
-                    #     break
+                    if match_len in (self._look_ahead_buff_size - 1, self._look_ahead_buff_size):
+                        break
 
                 # find which of the found matches has the longest match length - which is the best match
                 triplet = self._find_best_match(found_triplets)

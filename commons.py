@@ -110,8 +110,8 @@ class DecodingFileTripletLoader:
         return self._offset_size_in_bits, self._match_len_size_in_bits
 
     def _decode_meta_data(self):
-        offset_bytes = self._fd.read(2)
-        match_len_bytes = self._fd.read(2)
+        offset_bytes = self._fd.read(meta_info_element_len)
+        match_len_bytes = self._fd.read(meta_info_element_len)
 
         self._offset_size_in_bits = int.from_bytes(offset_bytes, byteorder=endian, signed=False)
         self._match_len_size_in_bits = int.from_bytes(match_len_bytes, byteorder=endian, signed=False)
