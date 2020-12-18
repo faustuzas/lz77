@@ -1,7 +1,7 @@
 from bitarray import bitarray
 
 endian = 'big'
-meta_info_element_len = 2
+meta_info_element_len = 1
 
 
 class LZ77Triplet:

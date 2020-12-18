@@ -1,19 +1,17 @@
-#! /usr/bin/python3
 import argparse
 
 from lz77_enc import LZ77Encoder
 from lz77_dec import LZ77Decoder
-from commons import EncodingFileTripletIngestor, file_byte_data_loader, triplet_decoder
+import commons
 
 
-look_ahead_buff_size = 200
-search_buff_size = 200
-
-if __name__ == '__main__':
+def main():
     parser = argparse.ArgumentParser(description='LZ77 based encoder')
     parser.add_argument('--type', choices=['enc', 'dec'], default='enc')
     parser.add_argument('--input', required=True)
     parser.add_argument('--output', required=True)
+    parser.add_argument('--offset_size', required=True)
+    parser.add_argument('--match_len_size', required=True)
     args = parser.parse_args()
 
     type_ = args.type
@@ -23,23 +21,47 @@ if __name__ == '__main__':
         parser.print_help()
         exit(-2)
 
-    with EncodingFileTripletIngestor(output_file) as ingestor:
-        data_loader = file_byte_data_loader(input_file)
+    if type_ == 'enc':
+        offset_size_in_bits = args.offset_size or None
+        match_len_size_in_bits = args.match_len_size or None
+        if offset_size_in_bits is None or match_len_size_in_bits is None:
+            parser.print_help()
+            exit(-2)
 
-        if type_ == 'enc':
-            encoder = LZ77Encoder(
-                data_loader=data_loader,
-                result_ingestor=ingestor,
-                look_ahead_buff_size=look_ahead_buff_size,
-                search_buff_size=search_buff_size
-            )
+        offset_size_in_bits = int(offset_size_in_bits)
+        match_len_size_in_bits = int(match_len_size_in_bits)
 
-            encoder.encode()
-        else:
-            decoder = LZ77Decoder(
-                data_loader=triplet_decoder(data_loader),
-                result_ingestor=ingestor,
-                search_buff_size=search_buff_size
-            )
+        with commons.FileRawDataLoader(input_file) as loader:
+            with commons.EncodingFileTripletIngestor(output_file,
+                                                     offset_size_in_bits,
+                                                     match_len_size_in_bits) as ingestor:
+                encoder = LZ77Encoder(
+                    data_loader=loader,
+                    result_ingestor=ingestor,
+                    search_buff_size=commons.search_buff_size_for_bits(offset_size_in_bits),
+                    look_ahead_buff_size=commons.look_ahead_size_for_bits(match_len_size_in_bits)
+                )
 
-            decoder.decode()
+                encoder.encode()
+        return
+
+    if type_ == 'dec':
+        with commons.DecodingFileTripletLoader(input_file) as loader:
+            with commons.FileRawDataIngestor(output_file) as ingestor:
+                (offset_size_in_bits, _) = loader.encoding_meta_data
+
+                decoder = LZ77Decoder(
+                    data_loader=loader,
+                    result_ingestor=ingestor,
+                    search_buff_size=commons.search_buff_size_for_bits(offset_size_in_bits)
+                )
+
+                decoder.decode()
+
+                return
+
+    print(f'Error: type ${type_} is not recognized')
+
+
+if __name__ == '__main__':
+    main()
